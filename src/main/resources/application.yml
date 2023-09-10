@@ -13,20 +13,20 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: user-service
-          uri: lb://USER-SERVICE
+        - id: user-service # route ID
+          uri: lb://USER-SERVICE # Eureka 등록된 서비스의 이름 (USER-SERVICE)
           predicates:
-            - Path=/user-service/login
+            - Path=/user-service/auth/** # API Gateway 로부터 이와 같은 path, method 요청을 따로 명시
             - Method=POST
           filters:
-            - RemoveRequestHeader=Cookie
-            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - RemoveRequestHeader=Cookie # Request Headers 의 Cookie 삭제
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment} # API Gateway 로 들어온 요청 /user-service/샬라샬라를 실제 해당 user-service 에 요청할 때 /샬라샬라로 변환해준다.
 
         - id: user-service
           uri: lb://USER-SERVICE
           predicates:
-            - Path=/user-service/auth/authenticate
-            - Method=POST
+            - Path=/user-service/actuator/**
+            - Method=POST, GET
           filters:
             - RemoveRequestHeader=Cookie
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
@@ -37,6 +37,7 @@ spring:
             - Path=/user-service/**
           filters:
             - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
 
         - id: catalog-service
           uri: lb://CATALOG-SERVICE
@@ -76,4 +77,8 @@ spring:
             baseMessage: Spring Cloud Gateway Global Filter
             preLogger: true
             postLogger: true
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh, health, beans, httpexchanges
