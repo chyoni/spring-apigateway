@@ -40,6 +40,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             ServerHttpRequest request = exchange.getRequest();
 
             if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+                log.error("Auth data empty");
                 return onError(exchange, "No authorization header", HttpStatus.UNAUTHORIZED);
             }
 
@@ -47,6 +48,7 @@ public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<Auth
             String jwt = authHeader.replace("Bearer ", "");
 
             if (!isJwtValid(jwt)) {
+                log.error("Auth data invalid");
                 return onError(exchange, "JWT is not valid", HttpStatus.UNAUTHORIZED);
             }
             return chain.filter(exchange);
