@@ -15,6 +15,13 @@ spring:
     port: 5672
     username: guest
     password: guest
+    listener:
+      direct:
+        auto-startup: false
+      stream:
+        auto-startup: false
+      simple:
+        auto-startup: false
   cloud:
     gateway:
       routes:
@@ -54,6 +61,15 @@ spring:
           predicates:
             - Path=/order-service/**
 
+        - id: order-service
+          uri: lb://ORDER-SERVICE
+          predicates:
+            - Path=/order-service/actuator/**
+            - Method=POST, GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/order-service/(?<segment>.*), /$\{segment}
+
 #        - id: first-service
 #          uri: lb://MY-FIRST-SERVICE
 #          predicates:
@@ -86,4 +102,5 @@ management:
   endpoints:
     web:
       exposure:
-        include: refresh, health, beans, httpexchanges, busrefresh
+        include: refresh, health, beans, info, metrics, prometheus
+#        include: refresh, health, beans, httpexchanges. busrefresh
